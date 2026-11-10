@@ -1,0 +1,11 @@
+# Raw sequencing data
+raw_data/
+
+# Reference genome and annotation
+reference_genome/
+
+# Analysis results
+results/
+
+# Logs
+logs/
