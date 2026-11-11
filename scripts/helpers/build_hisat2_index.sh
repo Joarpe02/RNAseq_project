@@ -7,8 +7,8 @@
 #SBATCH --time=03:00:00
 #SBATCH --mem=8G
 #SBATCH --partition=pibu_el8
-#SBATCH --output=../logs/%x_%j.out
-#SBATCH --error=../logs/%x_%j.err
+#SBATCH --output=/data/users/jarcila/rna_course/logs/%x_%j.out
+#SBATCH --error=/data/users/jarcila/rna_course/logs/%x_%j.err
 
 # Stop at the first error
 set -euo pipefail

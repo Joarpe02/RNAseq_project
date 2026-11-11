@@ -7,25 +7,26 @@
 #SBATCH --time=01:00:00
 #SBATCH --mem=25G
 #SBATCH --partition=pibu_el8
-#SBATCH --output=../logs/%x_%j.out
-#SBATCH --error=../logs/%x_%j.err
+#SBATCH --output=/data/users/jarcila/rna_course/logs/%x_%j.out
+#SBATCH --error=/data/users/jarcila/rna_course/logs/%x_%j.err
 
 # Stop at the first error
 set -euo pipefail
 
 # Settings
+PROJECT_DIR=/data/users/jarcila/rna_course
+INPUT_DIR=${PROJECT_DIR}/results/mapping/unsorted_bam
+OUTPUT_DIR=${PROJECT_DIR}/results/mapping/sorted_bam
 CONTAINER=/containers/apptainer/hisat2_samtools_408dfd02f175cd88.sif
-INPUT_DIR=results/mapping/unsorted_bam
-OUTPUT_DIR=results/mapping/sorted_bam
 
 mkdir -p "${OUTPUT_DIR}"
 
 # Get sample corresponding to the array task
-R1=$(sed -n "${SLURM_ARRAY_TASK_ID}p" raw_data/samples.txt)
+R1=$(sed -n "${SLURM_ARRAY_TASK_ID}p" "${PROJECT_DIR}/samples.txt")
 
-SAMPLE=$(basename "$R1" _1.fastq.gz)
+SAMPLE=$(basename "${R1}" _1.fastq.gz)
 
-UNSORTED_BAM="${INPUT_DIR}/${SAMPLE}.bam"
+UNSORTED_BAM="${INPUT_DIR}/${SAMPLE}_unsorted.bam"
 SORTED_BAM="${OUTPUT_DIR}/${SAMPLE}_sorted.bam"
 
 if [[ ! -f "${UNSORTED_BAM}" ]]; then
