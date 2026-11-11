@@ -21,7 +21,7 @@ HELPERS=${PROJECT_DIR}/scripts/helpers
 mkdir -p "${PROJECT_DIR}/logs"
 
 # Build hisat2 index for the reference genome
-#INDEX_JOB=$(sbatch --parsable "${HELPERS}/build_hisat2_index.sh")
+INDEX_JOB=$(sbatch --parsable "${HELPERS}/build_hisat2_index.sh")
 
 # Count samples and create array 
 find "${PROJECT_DIR}/raw_data/" -maxdepth 1 -type f -name '*_1.fastq.gz' | sort > "${PROJECT_DIR}/samples.txt"
@@ -29,16 +29,13 @@ find "${PROJECT_DIR}/raw_data/" -maxdepth 1 -type f -name '*_1.fastq.gz' | sort 
 N_SAMPLES=$(wc -l < "${PROJECT_DIR}/samples.txt")
 
 # Map reads using hisat2 once the indexing job is done
-#MAPPING_JOB=$(sbatch --parsable \
-#    --dependency=afterok:${INDEX_JOB} \
-#    --array=1-"${N_SAMPLES}"%5 \
-#    "${HELPERS}/mapping.sh")
+MAPPING_JOB=$(sbatch --parsable \
+    --dependency=afterok:${INDEX_JOB} \
+    --array=1-"${N_SAMPLES}"%5 \
+    "${HELPERS}/mapping.sh")
 
 # Sort and index BAM files once the mapping job is done
-#sbatch --parsable \
-#    --dependency=afterok:${MAPPING_JOB} \
-#    --array=1-"${N_SAMPLES}"%5 \
-#    "${HELPERS}/process_bam.sh"
 sbatch --parsable \
+    --dependency=afterok:${MAPPING_JOB} \
     --array=1-"${N_SAMPLES}"%5 \
     "${HELPERS}/process_bam.sh"
