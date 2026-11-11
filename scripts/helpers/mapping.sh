@@ -17,7 +17,7 @@ set -euo pipefail
 PROJECT_DIR=/data/users/jarcila/rna_course
 INDEX_BASENAME=${PROJECT_DIR}/reference_genome/hisat2_index
 READS_DIR=${PROJECT_DIR}/raw_data
-OUTPUT_DIR=${PROJECT_DIR}/results/mapping/bam
+OUTPUT_DIR=${PROJECT_DIR}/results/mapping/unsorted_bam
 CONTAINER=/containers/apptainer/hisat2_samtools_408dfd02f175cd88.sif
 
 # Make sure every directory exists
@@ -41,6 +41,7 @@ fi
 
 # Extract sample name
 SAMPLE=$(basename "${R1}" _1.fastq.gz)
+UNSORTED_BAM="${OUTPUT_DIR}/${SAMPLE}_unsorted.bam"
 
 # HISAT2 mapping + SAM to BAM conversion
 apptainer exec ${CONTAINER} hisat2 \
@@ -48,4 +49,4 @@ apptainer exec ${CONTAINER} hisat2 \
 -x ${INDEX_BASENAME} \
 -1 "$R1" -2 "$R2" \
 --rna-strandedness RF | \
-apptainer exec ${CONTAINER} samtools view -hb 
+apptainer exec ${CONTAINER} samtools view -bs - > "${UNSORTED_BAM}" 

@@ -18,29 +18,19 @@ PROJECT_DIR=/data/users/jarcila/rna_course
 HELPERS=${PROJECT_DIR}/scripts/helpers
 
 # Make sure every directory exists
-mkdir -p "${PROJECT_DIR}/logs" "${PROJECT_DIR}/raw_data" "${PROJECT_DIR}/results/mapping/bam"
+mkdir -p "${PROJECT_DIR}/logs"
 
 # Build hisat2 index for the reference genome
 INDEX_JOB=$(sbatch --parsable "${HELPERS}/build_hisat2_index.sh")
 
-# 2\. Generar lista de muestras R1 find "${PROJECT\_DIR}/raw\_data" -maxdepth 1 -type f -name '\*\_1.fastq.gz' | sort &gt; "${PROJECT\_DIR}/raw\_data/samples.txt" N\_SAMPLES=$(wc -l &lt; "${PROJECT\_DIR}/raw\_data/samples.txt") if [ "$N\_SAMPLES" -eq 0 ]; then echo "ERROR: No se encontraron archivos FASTQ R1 en ${PROJECT\_DIR}/raw\_data" exit 1 fi echo "Muestras encontradas: ${N\_SAMPLES}. Lanzando trabajos de alineamiento..." # 3\. Mapear y procesar BAM directamente con dependencia del trabajo de indexación sbatch --parsable \\ --dependency=afterok:${INDEX\_JOB} \\ --array=1-"${N\_SAMPLES}"%5 \\ "${HELPERS}/mapping.sh"
+# Count samples and create array 
+find "${PROJECT_DIR}/raw_data" -maxdepth 1 -type f -name '*_1.fastq.gz' | sort > "${PROJECT_DIR}/raw_data/samples.txt"
 
-# --------------------------------
-# 3. Count samples and create array
-# --------------------------------
-find raw_data -maxdepth 1 -type f \
-    -name '*_1.fastq.gz' | sort > raw_data/samples.txt
-
-N_SAMPLES=$(wc -l < raw_data/samples.txt)
-
-if [ "$N_SAMPLES" -eq 0 ]; then
-    echo "ERROR: No FASTQ R1 files found"
-    exit 1
-fi
+N_SAMPLES=$(wc -l < "${PROJECT_DIR}/raw_data/samples.txt")
 
 # Map reads using hisat2 once the indexing job is done
 MAPPING_JOB=$(sbatch --parsable \
-    --dependency=afterok:$INDEX_JOB \
+    --dependency=afterok:${INDEX_JOB} \
     --array=1-"${N_SAMPLES}"%5 \
     "$HELPERS/mapping.sh")
 

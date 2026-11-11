@@ -15,30 +15,32 @@ set -euo pipefail
 
 # Settings
 CONTAINER=/containers/apptainer/hisat2_samtools_408dfd02f175cd88.sif
-INPUT=results/mapping/bam
-OUTPUT=results/mapping/sorted_bam
+INPUT_DIR=results/mapping/unsorted_bam
+OUTPUT_DIR=results/mapping/sorted_bam
 
-mkdir -p "$OUTPUT"
+mkdir -p "${OUTPUT_DIR}"
 
 # Get sample corresponding to the array task
 R1=$(sed -n "${SLURM_ARRAY_TASK_ID}p" raw_data/samples.txt)
 
 SAMPLE=$(basename "$R1" _1.fastq.gz)
 
-BAM="$INPUT/${SAMPLE}.bam"
-SORTED_BAM="$OUTPUT/${SAMPLE}_sorted.bam"
+UNSORTED_BAM="${INPUT_DIR}/${SAMPLE}.bam"
+SORTED_BAM="${OUTPUT_DIR}/${SAMPLE}_sorted.bam"
 
-if [[ ! -f "$BAM" ]]; then
-    echo "ERROR: BAM file not found: $BAM"
+if [[ ! -f "${UNSORTED_BAM}" ]]; then
+    echo "ERROR: BAM file not found: ${UNSORTED_BAM}"
     exit 1
 fi
 
-echo "Processing sample: $SAMPLE"
-
 # Sort BAM file
 apptainer exec ${CONTAINER} samtools sort \
-    -@ "$SLURM_CPUS_PER_TASK" \
-    -o "$OUT_DIR/${SAMPLE}_sorted.bam"
+    -@ "${SLURM_CPUS_PER_TASK}" \
+    -o "${OUTPUT_DIR}/${SAMPLE}_sorted.bam" \
+    "${UNSORTED_BAM}"
 
 # Index sorted BAM file
-apptainer exec ${CONTAINER} samtools index "$OUT_DIR/${SAMPLE}_sorted.bam"
+apptainer exec ${CONTAINER} samtools index "${SORTED_BAM}"
+
+# Remove temporary unsorted bam files
+rm -f "${UNSORTED_BAM}"
